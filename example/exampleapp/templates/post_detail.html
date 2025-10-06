@@ -1,0 +1,9 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>{{ post.title }}</title></head>
+  <body>
+    <h1>{{ post.title }}</h1>
+    <article>{{ post.body }}</article>
+    {% if post.category %}<p>Category: {{ post.category.name }}</p>{% endif %}
+  </body>
+</html>
