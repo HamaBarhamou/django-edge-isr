@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-edge-isr"
-version = "0.0.6"
+version = "0.0.5"
 description = "Incremental Static Revalidation for Django (SWR + tag-based invalidation + warmup + CDN connectors)."
 readme = "README.md"
 requires-python = ">=3.10"
-license = "MIT"
+license = {text = "MIT"}
 authors = [{name = "Barhamou ISSAKA HAMA", email = "hamabarhamou@gmail.com"}]
 classifiers = [
   "Framework :: Django",
