@@ -1,6 +1,8 @@
 site_name: django-edge-isr
 site_description: Incremental Static Revalidation for Django
+site_url: https://HamaBarhamou.github.io/django-edge-isr/
 repo_url: https://github.com/HamaBarhamou/django-edge-isr.git
+repo_name: django-edge-isr
 nav:
   - Overview: index.md
   - Quickstart: quickstart.md
@@ -12,8 +14,20 @@ nav:
   - Troubleshooting: troubleshooting.md
   - Contributing: contributing.md
 theme:
-  name: mkdocs
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - content.action.edit
+  icon:
+    repo: fontawesome/brands/github
+
 markdown_extensions:
   - admonition
   - toc:
       permalink: true
+  - tables
+  - codehilite
+  - pymdownx.details
+  - pymdownx.superfences
