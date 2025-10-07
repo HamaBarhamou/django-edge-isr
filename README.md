@@ -1,31 +1,67 @@
 # django-edge-isr
+
 **Incremental Static Revalidation for Django** — the speed of static, the freshness of dynamic. Serve fast cached pages from a CDN (or any proxy), while revalidating in the background and regenerating only what changed.
 
-> ⚠️ Status: **Alpha design**. This README describes the vision and the initial MVP. Contributions & feedback welcome.
+> ⚠️ Status: **Alpha design**. This README outlines the vision and MVP scope. Contributions & feedback welcome.
 
-## Why?
-Caching in Django is powerful but hard to keep **fresh**. When content changes, developers either:
-- wait for TTLs to expire (stale content), or
-- “purge everything” on the CDN (origin stampede), or
-- hand‑roll invalidation logic per view/model (fragile).
+---
 
-Modern stacks (e.g. ISR in JS ecosystems) popularized **stale‑while‑revalidate** + **on‑demand revalidation**. `django-edge-isr` brings the same developer experience to Django:
+## Documentation
 
-- **SWR semantics** by default (`Cache-Control: s-maxage=..., stale-while-revalidate=...`).
-- **Tag-based invalidation**: map pages/partials to the model instances they depend on.
-- **On‑demand, targeted revalidation** when data changes (signals).
-- **Optional CDN connectors** (Cloudflare/CloudFront) to purge precisely the URLs that changed.
-- **Warmup jobs** to repopulate cache in the background and avoid cold starts.
+- **Getting Started & Guides:** see [`docs/`](./docs/)
+- **Contributing guide:** [`docs/contributing.md`](./docs/contributing.md)
+- **MVP architecture & release plan:** [`ARCHITECTURE.md`](./ARCHITECTURE.md)
+
+---
+
+## Why this project exists (and why now)
+
+Caching in Django is powerful, but keeping pages **fresh** without over-purging is still hard:
+
+- **TTL vs correctness:** either wait for TTLs (stale content) or “purge everything” (origin stampede).
+- **Ad-hoc invalidation:** per-view/model logic is brittle and duplicated across projects.
+- **CDN gap:** Django’s cache framework doesn’t natively speak modern CDN semantics
+  like _stale-while-revalidate_ (SWR), on-demand revalidation, or precise purge-by-URL.
+- **Fragment/page mapping is missing:** most stacks lack a first-class way to say “_this page depends on these objects_”.
+
+At the same time, modern CDNs and reverse proxies handle SWR and fast purges well. Front-end ecosystems popularized ISR (incremental static revalidation). **`django-edge-isr` brings that developer experience to Django**, in a framework-native way.
+
+### What gap does it fill?
+
+- ✅ **Tag-based invalidation**: declare dependencies (`post:42`, `category:7`) for pages/fragments.
+- ✅ **SWR by default**: serve instantly; revalidate in the background.
+- ✅ **On-demand, targeted revalidation** driven by model signals.
+- ✅ **CDN connectors (opt-in)**: purge **only** affected URLs (Cloudflare/CloudFront).
+- ✅ **Warmup pipeline**: repopulate cache asynchronously to avoid cold starts.
+- ✅ **Zero vendor lock-in**: also works with plain reverse proxies or just Django as origin.
+
+> This is **not** a static site generator; it slots into any Django app and makes your dynamic pages _cacheable and correct_ at the edge.
+
+---
+
+## How it’s different from existing approaches
+
+- **Django cache middlewares**: great for simple TTL caching, but no tag graph, no SWR revalidation, no URL-level CDN purges.
+- **Query/object caches**: helpful to speed up ORM, but they don’t solve **page** invalidation at the edge nor background warmup.
+- **CMS-specific caches**: work well in their ecosystem, but aren’t general-purpose and rarely expose a tag graph for arbitrary apps.
+
+`django-edge-isr` focuses on **page/fragment correctness at the edge** with a **Redis-backed tag graph**, **SWR headers**, and **a revalidation pipeline** that talks to your CDN _only when needed_.
+
+---
 
 ## What you get
+
 - `@isr(...)` **decorator** for views (and template fragments) with tags, TTLs and SWR.
-- **Signal handlers** that listen to `post_save` / `post_delete` and trigger revalidation.
-- **Tag graph** stored in Redis to know which URLs depend on which objects.
-- **Connectors** for Cloudflare / CloudFront (opt‑in).
-- **Admin UI** (preview) to see cached URLs, tags, and revalidation status.
-- **Queue adapters** (Celery/RQ or an in‑process fallback) for warmups & revalidation tasks.
+- **Signal helpers** (e.g. on `post_save`/`post_delete`) to trigger revalidation by tags.
+- **Tag graph** in Redis mapping `url ↔ tags`.
+- **Connectors** for Cloudflare / CloudFront (opt-in).
+- **Admin endpoints** to inspect URLs/tags and warmups.
+- **Queue adapters** (Celery/RQ or in-process) for warmups & revalidation tasks.
+
+---
 
 ## Quickstart (MVP sketch)
+
 ```python
 # settings.py
 INSTALLED_APPS += ["edge_isr"]
@@ -34,7 +70,7 @@ EDGE_ISR = {
     "CDN": {"provider": "cloudflare", "zone_id": "...", "api_token": "..."},
     "DEFAULTS": {"s_maxage": 300, "stale_while_revalidate": 3600},
 }
-```
+````
 
 ```python
 # urls.py
@@ -58,42 +94,63 @@ def _post_changed(sender, instance, **kw):
     revalidate_by_tags([tag("post", instance.pk), tag("category", instance.category_id)])
 ```
 
-**That’s it**: on each `Post` change, the package purges just the affected URLs on your CDN, serves the **stale** page immediately (SWR), and warms a fresh version in the background.
+**That’s it**: when a `Post` changes, the package purges just the affected URLs on your CDN, serves the **stale** page immediately (SWR), and warms a fresh version in the background.
+
+---
 
 ## Concepts
-- **Tags**: strings like `post:42`, `category:7`. Views/fragments declare which tags they depend on.
-- **Tag Graph**: Redis sets keep two maps: `tag -> {urls}` and `url -> {tags}`.
-- **Revalidation**: on data change, determine URLs by tags, purge them at CDN (optional), and **warm** them by fetching from the origin with a special header (so they’re rebuilt & cached for the next visitor).
-- **SWR headers**: responses include `Cache-Control: s-maxage=N, stale-while-revalidate=M` (and `ETag` when appropriate).
+
+* **Tags**: strings like `post:42`, `category:7`. Views/fragments declare which tags they depend on.
+* **Tag Graph**: Redis sets keep two maps: `tag → {urls}` and `url → {tags}`.
+* **Revalidation**: on data change, determine URLs by tags, purge at CDN (optional), and **warm** by fetching from origin with a special header.
+* **SWR headers**: responses include `Cache-Control: public, s-maxage=N, stale-while-revalidate=M` (and an `ETag` when appropriate).
+
+---
 
 ## Supported (planned for 0.x series)
-- **Python**: 3.10+
-- **Django**: 4.2, 5.x
-- **Cache store**: Redis (for tag graph & job state)
-- **Task queue**: Celery or RQ (recommended); in‑process fallback for dev
-- **CDN connectors**: Cloudflare (0.1), CloudFront (0.2). Works without a CDN too (reverse proxy or just Django cache).
+
+* **Python**: 3.10+
+* **Django**: 4.2, 5.x
+* **Cache store**: Redis (for tag graph & job state)
+* **Task queue**: Celery or RQ (recommended); in-process fallback for dev
+* **CDN connectors**: Cloudflare (0.1), CloudFront (0.2). Works without a CDN too (reverse proxy or just Django cache).
+
+---
 
 ## When NOT to use it
-- Highly personalized or private pages (vary by cookie/user). Use fine‑grained keys or bypass ISR for those routes.
-- Endpoints with non‑idempotent side effects.
+
+* Highly personalized or private pages (vary by cookie/user). Use fine-grained keys or bypass ISR for those routes.
+* Endpoints with non-idempotent side effects.
+
+---
 
 ## Roadmap
-- **v0.1**: SWR headers, manual tags, Redis tag graph, Cloudflare purge, warmup worker, basic admin.
-- **v0.2**: CloudFront invalidations, automatic tag enrichment helpers, template‑fragment decorator.
-- **v0.3**: Admin UX, metrics, per‑locale/device cache keys, smarter warmup (rate‑limiting, batching).
+
+* **v0.1**: SWR headers, manual tags, Redis tag graph, Cloudflare purge, warmup worker, basic admin.
+* **v0.2**: CloudFront invalidations, automatic tag enrichment helpers, template-fragment decorator.
+* **v0.3**: Admin UX, metrics, per-locale/device cache keys, smarter warmup (rate-limiting, batching).
+
+---
 
 ## FAQ
-**Q:** Do I need a CDN?
-**A:** No. You can start locally or behind Nginx/Varnish. CDNs unlock global edge caching and instant purges.
 
-**Q:** How does it avoid origin stampede?
-**A:** SWR serves the stale version while revalidating **once** in the background; warmups are enqueued & throttled.
+**Do I need a CDN?**
+No. You can start locally or behind Nginx/Varnish. CDNs unlock global edge caching and instant purges.
 
-**Q:** How do I tag template fragments?
-**A:** Use `@isr_fragment` (0.2) or `{% isrcache 'fragment', tags=['category:7'] %}` in templates.
+**How does it avoid origin stampede?**
+SWR serves the stale version while revalidating **once** in the background; warmups are queued & throttled.
+
+**How do I tag template fragments?**
+`@isr_fragment` (planned 0.2) or a template tag like `{% isrcache %}`.
+
+---
 
 ## Contributing
-Issues and PRs welcome. Please include a minimal repro (view, tags used, and the observed cache headers).
+
+Issues and PRs welcome! See [`docs/contributing.md`](./docs/contributing.md) for setup, test/lint commands, pre-commit hooks, and PR conventions.
+
+---
 
 ## License
+
 MIT
