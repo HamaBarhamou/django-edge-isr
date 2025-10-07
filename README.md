@@ -8,9 +8,17 @@
 
 ## Documentation
 
-- **Getting Started & Guides:** see [`docs/`](./docs/)
-- **Contributing guide:** [`docs/contributing.md`](./docs/contributing.md)
-- **MVP architecture & release plan:** [`ARCHITECTURE.md`](./ARCHITECTURE.md)
+- **Site (latest)** : https://hamabarhamou.github.io/django-edge-isr/
+- **Quickstart** : https://hamabarhamou.github.io/django-edge-isr/quickstart/
+- **Concepts** : https://hamabarhamou.github.io/django-edge-isr/concepts/
+- **API Reference** : https://hamabarhamou.github.io/django-edge-isr/api/
+- **Admin / Status Endpoints** : https://hamabarhamou.github.io/django-edge-isr/admin/
+- **Revalidation Pipeline** : https://hamabarhamou.github.io/django-edge-isr/revalidation/
+- **Deployment** : https://hamabarhamou.github.io/django-edge-isr/deployment/
+- **Troubleshooting** : https://hamabarhamou.github.io/django-edge-isr/troubleshooting/
+- **Contributing Guide** : https://hamabarhamou.github.io/django-edge-isr/contributing/
+- **MVP architecture & release plan** : https://github.com/HamaBarhamou/django-edge-isr/blob/develop/ARCHITECTURE.md
+
 
 ---
 

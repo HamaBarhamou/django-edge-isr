@@ -1,4 +1,4 @@
-name: publish
+name: release
 
 on:
   push:
@@ -6,18 +6,40 @@ on:
       - "v*.*.*"
 
 jobs:
-  build-and-publish:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install build
-      - run: python -m build
-      - name: Publish to PyPI
+
+      - name: Build sdist/wheel
+        run: |
+          pip install build
+          python -m build
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*
+
+  publish-pypi:
+    needs: build
+    # 👉 ne s'exécute que si tu passes la variable à true plus tard
+    if: ${{ vars.PUBLISH_TO_PYPI == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # requis pour Trusted Publishing
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - name: Publish to PyPI (trusted publishing)
         uses: pypa/gh-action-pypi-publish@v1.9.0
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages-dir: dist
+          skip-existing: true
