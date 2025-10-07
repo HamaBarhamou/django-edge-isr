@@ -83,13 +83,13 @@ def _post_changed(sender, instance, **kw):
 - **v0.3**: Admin UX, metrics, per‑locale/device cache keys, smarter warmup (rate‑limiting, batching).
 
 ## FAQ
-**Q:** Do I need a CDN?  
+**Q:** Do I need a CDN?
 **A:** No. You can start locally or behind Nginx/Varnish. CDNs unlock global edge caching and instant purges.
 
-**Q:** How does it avoid origin stampede?  
+**Q:** How does it avoid origin stampede?
 **A:** SWR serves the stale version while revalidating **once** in the background; warmups are enqueued & throttled.
 
-**Q:** How do I tag template fragments?  
+**Q:** How do I tag template fragments?
 **A:** Use `@isr_fragment` (0.2) or `{% isrcache 'fragment', tags=['category:7'] %}` in templates.
 
 ## Contributing

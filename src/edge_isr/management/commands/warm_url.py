@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from edge_isr.revalidate.tasks import warmup_url
 
+
 class Command(BaseCommand):
     help = "Warm a specific URL (force refresh in background)."
 

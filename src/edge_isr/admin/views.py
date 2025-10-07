@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.contrib.admin.views.decorators import staff_member_required
 from ..graph import urls_for, tags_for
 
+
 @staff_member_required
 def status(request):
     tag = request.GET.get("tag")

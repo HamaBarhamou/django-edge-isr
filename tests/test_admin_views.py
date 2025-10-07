@@ -3,10 +3,12 @@ import pytest
 from django.contrib.auth import get_user_model
 from edge_isr import graph
 
+
 @pytest.mark.django_db
 def test_admin_status_requires_staff(client):
     r = client.get("/edge-isr/status/?tag=post:1")
     assert r.status_code in (302, 403)
+
 
 @pytest.mark.django_db
 def test_admin_status_returns_data_for_staff(client):

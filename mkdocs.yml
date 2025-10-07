@@ -1,0 +1,19 @@
+site_name: django-edge-isr
+site_description: Incremental Static Revalidation for Django
+repo_url: https://github.com/HamaBarhamou/django-edge-isr.git
+nav:
+  - Overview: index.md
+  - Quickstart: quickstart.md
+  - Concepts: concepts.md
+  - API Reference: api.md
+  - Admin & Observability: admin.md
+  - Revalidation Pipeline: revalidation.md
+  - Deployment Guide: deployment.md
+  - Troubleshooting: troubleshooting.md
+  - Contributing: contributing.md
+theme:
+  name: mkdocs
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true

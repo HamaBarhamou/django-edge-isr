@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from edge_isr.revalidate.tasks import revalidate_by_tags
 
+
 class Command(BaseCommand):
     help = "Revalidate URLs associated with the given tags."
 

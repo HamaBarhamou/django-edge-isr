@@ -5,6 +5,7 @@ from .cloudflare import CloudflareConnector
 from .cloudfront import CloudFrontConnector
 from ..settings import settings
 
+
 def get_cdn_connector() -> Optional[BaseConnector]:
     p = settings.provider
     if p == "cloudflare":

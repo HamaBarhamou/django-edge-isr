@@ -7,6 +7,7 @@ from .context import ensure_request_context
 from .graph import bind
 from .utils import full_url_from_request
 
+
 def isr(
     tags: Optional[Callable[..., Iterable[str]]] = None,
     s_maxage: int = 300,
@@ -42,5 +43,7 @@ def isr(
                 pass
 
             return response
+
         return wrapper
+
     return decorator

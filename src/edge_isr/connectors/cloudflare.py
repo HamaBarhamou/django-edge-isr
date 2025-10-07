@@ -3,6 +3,7 @@ from typing import Dict, List
 import requests
 from .base import BaseConnector
 
+
 class CloudflareConnector(BaseConnector):
     def __init__(self, zone_id: str, api_token: str):
         self.zone_id = zone_id
@@ -19,7 +20,7 @@ class CloudflareConnector(BaseConnector):
         headers = {"Authorization": f"Bearer {self.api_token}", "Content-Type": "application/json"}
         BATCH = 30
         for i in range(0, len(urls), BATCH):
-            chunk = urls[i:i+BATCH]
+            chunk = urls[i : i + BATCH]
             try:
                 requests.post(endpoint, headers=headers, json={"files": chunk}, timeout=15)
             except Exception:

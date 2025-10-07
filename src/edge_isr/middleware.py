@@ -6,6 +6,7 @@ from .settings import settings
 from .graph import bind
 from .utils import full_url_from_request
 
+
 class EdgeISRMiddleware(MiddlewareMixin):
     def process_request(self, request):
         ensure_request_context(request)

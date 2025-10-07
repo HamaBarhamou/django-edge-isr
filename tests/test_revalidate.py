@@ -1,11 +1,13 @@
 from edge_isr import graph
 from edge_isr.revalidate import tasks as reval
 
+
 def test_revalidate_purges_and_warmups(monkeypatch):
     url = "http://testserver/post/77/"
     graph.bind(url, ["post:77"])
 
     purged = []
+
     class StubCDN:
         def purge_urls(self, urls):
             purged.extend(urls)
@@ -15,13 +17,21 @@ def test_revalidate_purges_and_warmups(monkeypatch):
     class ImmediateQueue:
         def enqueue(self, fn, *args, **kwargs):
             return fn(*args, **kwargs)
-    monkeypatch.setattr("edge_isr.revalidate.tasks.get_queue_adapter", lambda *a, **k: ImmediateQueue())
+
+    monkeypatch.setattr(
+        "edge_isr.revalidate.tasks.get_queue_adapter", lambda *a, **k: ImmediateQueue()
+    )
 
     warmed = []
+
     def fake_get(u, headers=None, timeout=None):
         warmed.append((u, headers or {}))
-        class Resp: status_code = 200
+
+        class Resp:
+            status_code = 200
+
         return Resp()
+
     monkeypatch.setattr("edge_isr.revalidate.tasks.requests.get", fake_get)
 
     urls = reval.revalidate_by_tags(["post:77"])

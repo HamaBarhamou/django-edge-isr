@@ -1,11 +1,13 @@
 from __future__ import annotations
 from typing import Dict, List
+
 try:
     import boto3  # optional
 except Exception:
     boto3 = None
 
 from .base import BaseConnector
+
 
 class CloudFrontConnector(BaseConnector):
     def __init__(self, distribution_id: str):
@@ -19,6 +21,7 @@ class CloudFrontConnector(BaseConnector):
         if not boto3 or not self.distribution_id or not urls:
             return
         from urllib.parse import urlsplit
+
         paths = []
         for u in urls:
             parts = urlsplit(u)

@@ -10,5 +10,4 @@ urlpatterns = [
     path("edge-isr/", include("edge_isr.admin.urls")),
     path("vary-merge/", vary_merge_view),
     path("non200/", non_200_view),
-
 ]

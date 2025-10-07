@@ -29,7 +29,13 @@ dependencies = [
 celery = ["celery>=5.3"]
 rq = ["rq>=1.15", "redis>=5.0.0"]
 cloudfront = ["boto3>=1.26"]
-dev = ["pytest>=7.4", "pytest-django>=4.7", "ruff>=0.4.0"]
+dev = [
+  "pytest>=7.4",
+  "pytest-django>=4.7",
+  "ruff>=0.4.0",
+  "black>=24.4.0",
+  "fakeredis>=2.22.0",
+  ]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -42,3 +48,7 @@ exclude = ["example*","tests*"]
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
