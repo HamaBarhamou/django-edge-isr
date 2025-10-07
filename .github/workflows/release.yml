@@ -28,19 +28,18 @@ jobs:
 
   publish-pypi:
     needs: build
-    # gated — won't run until you set this repo variable to 'true'
     if: ${{ vars.PUBLISH_TO_PYPI == 'true' }}
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write   # required if you later use Trusted Publishing
-      contents: read
     steps:
       - uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist
-      - name: Publish to PyPI (trusted publishing)
+      - name: Publish to PyPI (API token)
         uses: pypa/gh-action-pypi-publish@v1.9.0
         with:
           packages-dir: dist
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
           skip-existing: true
+          verify-metadata: true
