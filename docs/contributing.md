@@ -34,15 +34,15 @@ pip install -e ".[dev]"
 
 # 3) Optional: start a local Redis (tests use fakeredis by default)
 redis-server  # (optional)
-````
+```
 
 > We support Python **3.10+** and Django **4.2 / 5.x** in the 0.x series.
 
----
+
 
 ## Project layout
 
-```
+```bash
 ├─ src/edge_isr/         # package code
 │  ├─ connectors/        # CDN connectors (cloudflare, cloudfront)
 │  ├─ revalidate/        # queue adapters + tasks
