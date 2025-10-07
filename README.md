@@ -149,7 +149,29 @@ No. You can start locally or behind Nginx/Varnish. CDNs unlock global edge cachi
 SWR serves the stale version while revalidating **once** in the background; warmups are queued & throttled.
 
 **How do I tag template fragments?**
-`@isr_fragment` (planned 0.2) or a template tag like `{% isrcache %}`.
+*Planned for v0.2.* En v0.1, utilisez `@isr` côté vues (pages complètes). Ci-dessous, **API prévue** (susceptible d’évoluer) :
+
+Python — décorateur de fragment :
+```python
+from edge_isr import isr_fragment, tag
+
+@isr_fragment(tags=lambda post: [tag("post", post.id)], s_maxage=300, swr=3600)
+def render_post_card(post):
+    ...
+```
+
+Django template — balise de cache de fragment :
+
+{% raw %}
+
+```python
+{% isrcache "post_card" tags=["post:{{ post.id }}"] %}
+  {% include "components/post_card.html" %}
+{% endisrcache %}
+```
+
+{% endraw %}
+
 
 ---
 
@@ -161,4 +183,4 @@ Issues and PRs welcome! See [`docs/contributing.md`](./docs/contributing.md) for
 
 ## License
 
-MIT
+[MIT](LICENSE)
