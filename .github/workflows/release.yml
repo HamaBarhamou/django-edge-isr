@@ -5,16 +5,17 @@ on:
     tags:
       - "v*.*.*"
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
       - name: Build sdist/wheel
         run: |
           pip install build
@@ -27,11 +28,11 @@ jobs:
 
   publish-pypi:
     needs: build
-    # 👉 ne s'exécute que si tu passes la variable à true plus tard
+    # gated — won't run until you set this repo variable to 'true'
     if: ${{ vars.PUBLISH_TO_PYPI == 'true' }}
     runs-on: ubuntu-latest
     permissions:
-      id-token: write   # requis pour Trusted Publishing
+      id-token: write   # required if you later use Trusted Publishing
       contents: read
     steps:
       - uses: actions/download-artifact@v4
