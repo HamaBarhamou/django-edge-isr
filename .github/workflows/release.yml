@@ -32,8 +32,25 @@ jobs:
 
       - name: Build sdist/wheel
         run: |
-          pip install build
+          pip install build twine
           python -m build
+
+      - name: Twine check (explicit)
+        run: python -m twine check dist/*
+
+      - name: "Debug: list and peek METADATA"
+        run: |
+          python - <<'PY'
+          import glob, zipfile, os
+          for fn in glob.glob("dist/*.whl"):
+              print("==>", fn, os.path.getsize(fn), "bytes")
+              with zipfile.ZipFile(fn) as z:
+                  metas = [n for n in z.namelist() if n.endswith("METADATA")]
+                  print("METADATA paths:", metas)
+                  if metas:
+                      print(z.read(metas[0]).decode("utf-8","replace")[:400])
+          PY
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -58,4 +75,4 @@ jobs:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
           skip-existing: true
-          verify-metadata: true
+          verify-metadata: false
