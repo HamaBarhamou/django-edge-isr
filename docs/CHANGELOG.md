@@ -1,4 +1,3 @@
-
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -6,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on **Keep a Changelog**, and this project adheres to **Semantic Versioning** (as much as possible for a 0.x series).
 
 ## [Unreleased]
+Nothing yet.
+
+---
+
+## [0.0.8] – 2025-10-08
 
 ### Added
 - Release guide (`docs/release.md`).
@@ -13,10 +17,11 @@ The format is based on **Keep a Changelog**, and this project adheres to **Seman
 - Tests: **no binding** occurs when a view returns **non-200**.
 
 ### Changed
-- README: clearer install & docs links.
+- README: fully rewritten in English; clearer install & docs links; explicit alpha scope.
+- README: mark Cloudflare connector as *experimental*; remove extras install examples (Celery/RQ/CloudFront) until supported.
 
 ### Fixed
-- Avoid Jekyll/Liquid pitfalls in README (no Liquid tags).
+- Avoid Jekyll/Liquid pitfalls in README (wrap template examples in `{% raw %}...{% endraw %}`).
 
 ---
 

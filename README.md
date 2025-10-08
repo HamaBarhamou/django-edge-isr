@@ -1,4 +1,8 @@
 # django-edge-isr 🚀
+[![GitHub stars](https://img.shields.io/github/stars/HamaBarhamou/django-edge-isr?style=social)](https://github.com/HamaBarhamou/django-edge-isr/stargazers)
+
+> If this project is useful to you, please **star the repo** ⭐️.
+> Your support helps us prioritize features and keep improving!
 
 **Incremental Static Revalidation for Django** — get **static-like speed** with **dynamic freshness**. Serve fast cached pages at the edge (CDN or proxy) while **revalidating in the background** and rebuilding **only what changed**.
 
