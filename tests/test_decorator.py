@@ -27,3 +27,23 @@ def test_no_bind_on_non_200(client):
     resp = client.get("/non200/")
     assert resp.status_code == 404
     assert urls_for(["non200:test"]) == []
+
+
+# append to file
+def test_no_tags_does_not_bind(client):
+    from edge_isr.graph import tags_for
+
+    url = "http://testserver/no-tags/"
+    resp = client.get("/no-tags/")
+    assert resp.status_code == 200
+    assert list(tags_for(url)) == []
+
+
+def test_vary_dedup_merge_multiple(client):
+    resp = client.get("/vary-dedupe/")
+    v = resp.headers.get("Vary", "")
+    assert "User-Agent" in v
+    assert "Accept-Language" in v
+    assert "Accept-Encoding" in v
+    # ensure no duplicates for Accept-Language
+    assert v.count("Accept-Language") == 1

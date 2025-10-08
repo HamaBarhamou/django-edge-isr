@@ -24,3 +24,16 @@ def test_admin_status_returns_data_for_staff(client):
     data = json.loads(r.content)
     assert data["tag"] == "post:5"
     assert url in data["urls"]
+
+
+@pytest.mark.django_db
+def test_admin_status_unknown_tag_returns_empty_urls(client):
+    User = get_user_model()
+    User.objects.create_user(username="staff", password="x", is_staff=True)
+    client.login(username="staff", password="x")
+
+    r = client.get("/edge-isr/status/?tag=notfound:9999")
+    assert r.status_code == 200
+    data = json.loads(r.content)
+    assert data["tag"] == "notfound:9999"
+    assert data["urls"] == []

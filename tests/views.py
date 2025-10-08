@@ -26,3 +26,16 @@ def vary_merge_view(request):
 @isr(tags=lambda req: ["non200:test"], s_maxage=10, swr=100)
 def non_200_view(request):
     return HttpResponse("nope", status=404)
+
+
+# append to file
+@isr(tags=lambda req: [], s_maxage=10, swr=100)
+def no_tags_view(request):
+    return HttpResponse("no-tags")
+
+
+@isr(vary=["Accept-Language", "Accept-Encoding"])
+def vary_dedupe_view(request):
+    r = HttpResponse("vary-dedupe")
+    r["Vary"] = "User-Agent, Accept-Language"  # pre-existing Vary
+    return r
