@@ -9,14 +9,16 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
+      # Assure que la version du tag == pyproject.toml
       - name: Check version matches tag
         run: |
           python - <<'PY'
@@ -30,32 +32,39 @@ jobs:
           print(f"Version OK: {ver}")
           PY
 
+      - name: Clean previous builds
+        run: rm -rf dist build *.egg-info
+
       - name: Build sdist/wheel
         run: |
-          pip install build
+          pip install -U build twine
           python -m build
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist
-          if-no-files-found: error
-          retention-days: 7
 
-  publish-pypi:
-    needs: build
-    if: ${{ vars.PUBLISH_TO_PYPI == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-      - name: Publish to PyPI (API token)
-        uses: pypa/gh-action-pypi-publish@v1.9.0
-        with:
-          packages-dir: dist
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
-          skip-existing: true
-          verify-metadata: true
+      - name: Twine check
+        run: python -m twine check dist/*
+
+      # Petit debug utile si ça recasse
+      - name: "Debug: list and peek METADATA"
+        run: |
+          python - <<'PY'
+          import glob, zipfile, os, sys
+          files = sorted(glob.glob("dist/*"))
+          print("DIST FILES:", files)
+          for fn in files:
+              print("==>", fn, os.path.getsize(fn), "bytes")
+              if fn.endswith(".whl"):
+                  with zipfile.ZipFile(fn) as z:
+                      metas = [n for n in z.namelist() if n.endswith("METADATA")]
+                      print("METADATA paths:", metas)
+                      if metas:
+                          txt = z.read(metas[0]).decode("utf-8","replace")
+                          print(txt.splitlines()[:8])
+          PY
+
+      - name: Publish to PyPI (twine direct)
+        if: ${{ vars.PUBLISH_TO_PYPI == 'true' }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          python -m twine upload --skip-existing dist/*
