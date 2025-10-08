@@ -17,7 +17,7 @@ pip install -e ".[dev]"
 ```bash
 # settings.py
 INSTALLED_APPS += ["edge_isr"]
-MIDDLEWARE += ["edge_isr.middleware.EdgeISRMiddleware"]
+MIDDLEWARE += ["edge_isr.middleware.EdgeISRMiddleware"] # injects default SWR headers
 
 EDGE_ISR = {
   "REDIS_URL": "redis://localhost:6379/0",

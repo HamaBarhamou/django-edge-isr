@@ -1,84 +1,100 @@
-# django-edge-isr
+# django-edge-isr 🚀
+[![GitHub stars](https://img.shields.io/github/stars/HamaBarhamou/django-edge-isr?style=social)](https://github.com/HamaBarhamou/django-edge-isr/stargazers)
 
-**Incremental Static Revalidation for Django** — the speed of static, the freshness of dynamic. Serve fast cached pages from a CDN (or any proxy), while revalidating in the background and regenerating only what changed.
+> If this project is useful to you, please **star the repo** ⭐️.
+> Your support helps us prioritize features and keep improving!
 
-> ⚠️ Status: **Alpha design**. This README outlines the vision and MVP scope. Contributions & feedback welcome.
+**Incremental Static Revalidation for Django** — get **static-like speed** with **dynamic freshness**. Serve fast cached pages at the edge (CDN or proxy) while **revalidating in the background** and rebuilding **only what changed**.
 
----
+> ⚠️ **Alpha** — APIs may evolve. Feedback & contributions welcome!
 
-## Documentation
-
-- **Site (latest)** : https://hamabarhamou.github.io/django-edge-isr/
-- **Quickstart** : https://hamabarhamou.github.io/django-edge-isr/quickstart/
-- **Concepts** : https://hamabarhamou.github.io/django-edge-isr/concepts/
-- **API Reference** : https://hamabarhamou.github.io/django-edge-isr/api/
-- **Admin / Status Endpoints** : https://hamabarhamou.github.io/django-edge-isr/admin/
-- **Revalidation Pipeline** : https://hamabarhamou.github.io/django-edge-isr/revalidation/
-- **Deployment** : https://hamabarhamou.github.io/django-edge-isr/deployment/
-- **Troubleshooting** : https://hamabarhamou.github.io/django-edge-isr/troubleshooting/
-- **Contributing Guide** : https://hamabarhamou.github.io/django-edge-isr/contributing/
-- **MVP architecture & release plan** : https://github.com/HamaBarhamou/django-edge-isr/blob/develop/ARCHITECTURE.md
-
+<p align="left">
+  <a href="https://pypi.org/project/django-edge-isr/"><img alt="PyPI" src="https://img.shields.io/pypi/v/django-edge-isr"></a>
+  <a href="https://pypi.org/project/django-edge-isr/"><img alt="Python versions" src="https://img.shields.io/pypi/pyversions/django-edge-isr"></a>
+  <a href="https://github.com/HamaBarhamou/django-edge-isr/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-green.svg"></a>
+  <a href="https://hamabarhamou.github.io/django-edge-isr/"><img alt="Docs" src="https://img.shields.io/badge/docs-latest-blue"></a>
+</p>
 
 ---
 
-## Why this project exists (and why now)
+## 📚 Documentation
 
-Caching in Django is powerful, but keeping pages **fresh** without over-purging is still hard:
-
-- **TTL vs correctness:** either wait for TTLs (stale content) or “purge everything” (origin stampede).
-- **Ad-hoc invalidation:** per-view/model logic is brittle and duplicated across projects.
-- **CDN gap:** Django’s cache framework doesn’t natively speak modern CDN semantics
-  like _stale-while-revalidate_ (SWR), on-demand revalidation, or precise purge-by-URL.
-- **Fragment/page mapping is missing:** most stacks lack a first-class way to say “_this page depends on these objects_”.
-
-At the same time, modern CDNs and reverse proxies handle SWR and fast purges well. Front-end ecosystems popularized ISR (incremental static revalidation). **`django-edge-isr` brings that developer experience to Django**, in a framework-native way.
-
-### What gap does it fill?
-
-- ✅ **Tag-based invalidation**: declare dependencies (`post:42`, `category:7`) for pages/fragments.
-- ✅ **SWR by default**: serve instantly; revalidate in the background.
-- ✅ **On-demand, targeted revalidation** driven by model signals.
-- ✅ **CDN connectors (opt-in)**: purge **only** affected URLs (Cloudflare/CloudFront).
-- ✅ **Warmup pipeline**: repopulate cache asynchronously to avoid cold starts.
-- ✅ **Zero vendor lock-in**: also works with plain reverse proxies or just Django as origin.
-
-> This is **not** a static site generator; it slots into any Django app and makes your dynamic pages _cacheable and correct_ at the edge.
+* **Site (latest)** → [https://hamabarhamou.github.io/django-edge-isr/](https://hamabarhamou.github.io/django-edge-isr/)
+* **Quickstart** → [https://hamabarhamou.github.io/django-edge-isr/quickstart/](https://hamabarhamou.github.io/django-edge-isr/quickstart/)
+* **Concepts** → [https://hamabarhamou.github.io/django-edge-isr/concepts/](https://hamabarhamou.github.io/django-edge-isr/concepts/)
+* **API Reference** → [https://hamabarhamou.github.io/django-edge-isr/api/](https://hamabarhamou.github.io/django-edge-isr/api/)
+* **Admin / Status** → [https://hamabarhamou.github.io/django-edge-isr/admin/](https://hamabarhamou.github.io/django-edge-isr/admin/)
+* **Revalidation Pipeline** → [https://hamabarhamou.github.io/django-edge-isr/revalidation/](https://hamabarhamou.github.io/django-edge-isr/revalidation/)
+* **Deployment** → [https://hamabarhamou.github.io/django-edge-isr/deployment/](https://hamabarhamou.github.io/django-edge-isr/deployment/)
+* **Troubleshooting** → [https://hamabarhamou.github.io/django-edge-isr/troubleshooting/](https://hamabarhamou.github.io/django-edge-isr/troubleshooting/)
+* **Contributing** → [https://hamabarhamou.github.io/django-edge-isr/contributing/](https://hamabarhamou.github.io/django-edge-isr/contributing/)
+* **Release guide** → [https://hamabarhamou.github.io/django-edge-isr/release/](https://hamabarhamou.github.io/django-edge-isr/release/)
+* **Changelog** → [https://hamabarhamou.github.io/django-edge-isr/CHANGELOG/](https://hamabarhamou.github.io/django-edge-isr/CHANGELOG/)
 
 ---
 
-## How it’s different from existing approaches
+## 💡 Why
 
-- **Django cache middlewares**: great for simple TTL caching, but no tag graph, no SWR revalidation, no URL-level CDN purges.
-- **Query/object caches**: helpful to speed up ORM, but they don’t solve **page** invalidation at the edge nor background warmup.
-- **CMS-specific caches**: work well in their ecosystem, but aren’t general-purpose and rarely expose a tag graph for arbitrary apps.
+Keeping Django pages **fresh** without over-purging is hard:
 
-`django-edge-isr` focuses on **page/fragment correctness at the edge** with a **Redis-backed tag graph**, **SWR headers**, and **a revalidation pipeline** that talks to your CDN _only when needed_.
+* ⏳ **TTL vs correctness** — wait for TTL (stale) or purge everything (origin stampede)
+* 🧩 **Ad-hoc invalidation** — brittle, duplicated per view/model
+* 🌐 **CDN gap** — Django doesn’t natively speak modern edge semantics like SWR or URL-level purges
+* 🧠 **No first-class dependency mapping** — “this page depends on these objects” is missing
 
----
-
-## What you get
-
-- `@isr(...)` **decorator** for views (and template fragments) with tags, TTLs and SWR.
-- **Signal helpers** (e.g. on `post_save`/`post_delete`) to trigger revalidation by tags.
-- **Tag graph** in Redis mapping `url ↔ tags`.
-- **Connectors** for Cloudflare / CloudFront (opt-in).
-- **Admin endpoints** to inspect URLs/tags and warmups.
-- **Queue adapters** (Celery/RQ or in-process) for warmups & revalidation tasks.
+**`django-edge-isr`** brings a modern ISR + SWR developer experience **inside Django**, without a static site generator.
 
 ---
 
-## Quickstart (MVP sketch)
+## ✨ Current status (alpha)
+
+* ✅ `@isr(...)` **for views** (full pages)
+* ✅ **SWR headers** via middleware (`public`, `s-maxage`, `stale-while-revalidate`)
+* ✅ **Redis tag graph** mapping `url ↔ tags`
+* ✅ **Revalidation & warmup** (inline queue by default)
+* ✅ **Admin/status endpoints**
+* 🧪 **Cloudflare connector** — *experimental*
+* 🛠️ **Planned**: CloudFront connector, Celery/RQ adapters, fragment decorator, metrics, improved Admin UX
+
+> No optional install extras (**Celery/RQ/CloudFront**) yet — we’ll announce them once stabilized.
+
+---
+
+## ⚙️ Install
+
+```bash
+pip install django-edge-isr
+```
+
+**Requirements**: Python 3.10+, Django 4.2/5.x, Redis (for the tag graph & job state)
+
+---
+
+## 🚀 Quickstart
+
+**1) Settings**
 
 ```python
 # settings.py
 INSTALLED_APPS += ["edge_isr"]
+
+MIDDLEWARE += [
+    "edge_isr.middleware.EdgeISRMiddleware",  # injects default SWR headers
+]
+
 EDGE_ISR = {
     "REDIS_URL": "redis://localhost:6379/0",
-    "CDN": {"provider": "cloudflare", "zone_id": "...", "api_token": "..."},
     "DEFAULTS": {"s_maxage": 300, "stale_while_revalidate": 3600},
+
+    # Optional (experimental): Cloudflare connector
+    # "CDN": {"provider": "cloudflare", "zone_id": "...", "api_token": "..."},
+
+    # Queue: inline for dev; Celery/RQ planned
+    # "QUEUE": {"backend": "celery", "queue_name": "edge_isr"},
 }
-````
+```
+
+**2) Tag your pages**
 
 ```python
 # urls.py
@@ -87,14 +103,16 @@ from edge_isr import isr, tag
 @isr(tags=lambda req, post_id: [tag("post", post_id)], s_maxage=300, swr=3600)
 def post_detail(request, post_id):
     post = Post.objects.select_related("category").get(pk=post_id)
-    # Optionally add more tags dynamically
-    request.edge_isr.add_tags([tag("category", post.category_id)])
+    request.edge_isr.add_tags([tag("category", post.category_id)])  # add dynamic tags
     return render(request, "post_detail.html", {"post": post})
 ```
+
+**3) Revalidate on data changes**
 
 ```python
 # models.py
 from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 from edge_isr import revalidate_by_tags, tag
 
 @receiver([post_save, post_delete], sender=Post)
@@ -102,56 +120,66 @@ def _post_changed(sender, instance, **kw):
     revalidate_by_tags([tag("post", instance.pk), tag("category", instance.category_id)])
 ```
 
-**That’s it**: when a `Post` changes, the package purges just the affected URLs on your CDN, serves the **stale** page immediately (SWR), and warms a fresh version in the background.
+**Admin / status (optional)**
+
+```python
+# urls.py
+from django.urls import include, path
+urlpatterns = [
+    # ...
+    path("edge-isr/", include("edge_isr.admin.urls")),
+]
+```
 
 ---
 
-## Concepts
+## 🧠 Concepts
 
-* **Tags**: strings like `post:42`, `category:7`. Views/fragments declare which tags they depend on.
-* **Tag Graph**: Redis sets keep two maps: `tag → {urls}` and `url → {tags}`.
-* **Revalidation**: on data change, determine URLs by tags, purge at CDN (optional), and **warm** by fetching from origin with a special header.
-* **SWR headers**: responses include `Cache-Control: public, s-maxage=N, stale-while-revalidate=M` (and an `ETag` when appropriate).
+* **Tags** — strings like `post:42`, `category:7` declared by views (and fragments later)
+* **Tag Graph** — Redis keeps `tag → {urls}` and `url → {tags}`
+* **Revalidation** — on changes, resolve URLs by tag, **purge** (optional CDN), then **warm**
+* **SWR** — responses include `Cache-Control: public, s-maxage=N, stale-while-revalidate=M` (+ `ETag` when appropriate)
 
 ---
 
-## Supported (planned for 0.x series)
+## ✅ Compatibility
 
 * **Python**: 3.10+
 * **Django**: 4.2, 5.x
-* **Cache store**: Redis (for tag graph & job state)
-* **Task queue**: Celery or RQ (recommended); in-process fallback for dev
-* **CDN connectors**: Cloudflare (0.1), CloudFront (0.2). Works without a CDN too (reverse proxy or just Django cache).
+* **Redis**: required
+* **CDN**: optional (Cloudflare **experimental**), CloudFront **planned**
+* **Queues**: inline today; Celery/RQ **planned**
 
 ---
 
-## When NOT to use it
+## 🚫 When not to use
 
-* Highly personalized or private pages (vary by cookie/user). Use fine-grained keys or bypass ISR for those routes.
-* Endpoints with non-idempotent side effects.
-
----
-
-## Roadmap
-
-* **v0.1**: SWR headers, manual tags, Redis tag graph, Cloudflare purge, warmup worker, basic admin.
-* **v0.2**: CloudFront invalidations, automatic tag enrichment helpers, template-fragment decorator.
-* **v0.3**: Admin UX, metrics, per-locale/device cache keys, smarter warmup (rate-limiting, batching).
+* Heavily personalized or private pages (varies by user/cookie)
+* Non-idempotent endpoints
 
 ---
 
-## FAQ
+## 🗺️ Roadmap
+
+* **v0.1**: SWR headers, manual tags, Redis tag graph, Cloudflare purge (experimental), warmup, basic Admin
+* **v0.2**: CloudFront connector, auto-tagging helpers, **fragment decorator**
+* **v0.3**: Admin UX, metrics, locale/device cache keys, smarter warmup (rate-limit, batching)
+
+---
+
+## ❓ FAQ
 
 **Do I need a CDN?**
-No. You can start locally or behind Nginx/Varnish. CDNs unlock global edge caching and instant purges.
+No. You can start locally or behind Nginx/Varnish. A CDN gives global edge caching and instant purges.
 
-**How does it avoid origin stampede?**
-SWR serves the stale version while revalidating **once** in the background; warmups are queued & throttled.
+**How do you avoid origin stampede?**
+SWR serves a **stale** version while a single background warmup refreshes the cache.
 
 **How do I tag template fragments?**
-*Planned for v0.2.* En v0.1, utilisez `@isr` côté vues (pages complètes). Ci-dessous, **API prévue** (susceptible d’évoluer) :
+*Planned for v0.2.* In v0.1 use `@isr` on full views. A possible future API (subject to change):
 
-Python — décorateur de fragment :
+Python — fragment decorator:
+
 ```python
 from edge_isr import isr_fragment, tag
 
@@ -160,11 +188,11 @@ def render_post_card(post):
     ...
 ```
 
-Django template — balise de cache de fragment :
+Django template — fragment cache tag:
 
 {% raw %}
 
-```python
+```django
 {% isrcache "post_card" tags=["post:{{ post.id }}"] %}
   {% include "components/post_card.html" %}
 {% endisrcache %}
@@ -172,15 +200,18 @@ Django template — balise de cache de fragment :
 
 {% endraw %}
 
+---
+
+## 🤝 Contributing
+
+Issues & PRs welcome! See the guide:
+[https://hamabarhamou.github.io/django-edge-isr/contributing/](https://hamabarhamou.github.io/django-edge-isr/contributing/)
+
+* **Release guide**: [https://hamabarhamou.github.io/django-edge-isr/release/](https://hamabarhamou.github.io/django-edge-isr/release/)
+* **Changelog**: [https://hamabarhamou.github.io/django-edge-isr/CHANGELOG/](https://hamabarhamou.github.io/django-edge-isr/CHANGELOG/)
 
 ---
 
-## Contributing
-
-Issues and PRs welcome! See [`docs/contributing.md`](./docs/contributing.md) for setup, test/lint commands, pre-commit hooks, and PR conventions.
-
----
-
-## License
+## 📄 License
 
 [MIT](LICENSE)
